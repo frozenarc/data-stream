@@ -15,6 +15,7 @@ import java.util.List;
 /**
  * Author: mpanchal
  * Date: 2022-12-01 07:05
+ * Class to handle xml data stream
  */
 public class XMLStream implements DataStream<XMLElement> {
 
@@ -33,6 +34,11 @@ public class XMLStream implements DataStream<XMLElement> {
         this.reader = XMLInputFactory.newFactory().createXMLStreamReader(inputStream);
     }
 
+    /**
+     * to be used to check whether next node is available or not
+     * @return true if node available to be read or false
+     * @throws DataStreamException
+     */
     @Override
     public boolean hasNext() throws DataStreamException {
         try {
@@ -56,6 +62,10 @@ public class XMLStream implements DataStream<XMLElement> {
         }
     }
 
+    /**
+     * @return next node
+     * @throws DataStreamException
+     */
     @Override
     public XMLElement next() throws DataStreamException {
         try {

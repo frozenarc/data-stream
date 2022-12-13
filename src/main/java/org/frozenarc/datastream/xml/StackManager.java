@@ -7,7 +7,7 @@ import java.util.Stack;
  * Author: mpanchal
  * Date: 2022-12-01 07:07
  */
-public class StackManager {
+class StackManager {
 
     private final Stack<String> stack;
     //private String endedElement;

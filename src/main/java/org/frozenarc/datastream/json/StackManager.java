@@ -8,7 +8,7 @@ import java.util.Stack;
  * Author: mpanchal
  * Date: 2022-12-01 06:43
  */
-public class StackManager {
+class StackManager {
 
     private final Stack<JsonToken> stack;
     private final int workingDepth;

@@ -6,7 +6,7 @@ import javax.xml.stream.events.XMLEvent;
  * Author: mpanchal
  * Date: 2022-12-01 07:09
  */
-public class XMLEventUtil {
+class XMLEventUtil {
 
     public static String getEventString(int eventType) {
         switch (eventType) {

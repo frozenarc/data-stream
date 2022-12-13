@@ -10,12 +10,22 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.function.Function;
 
-/*
+/**
  * Author: mpanchal
  * Date: 01-11-2022
+ * Utility class
  */
+@SuppressWarnings("unused")
 public class Util {
 
+    /**
+     * The method facilitates reading form data stream and write the to output stream as json array
+     * @param outputStream to be written json array
+     * @param checker checks whether data is available or not
+     * @param fetcher fetches next available data
+     * @param putArrayStartEnd true if start array "[" and end array "]" token needs to be write on output stream else false
+     * @throws DataStreamException if anything goes wrong
+     */
     public static void writeAsJsonArrayTo(OutputStream outputStream,
                                           HasNextChecker checker,
                                           NextFetcher fetcher,
@@ -40,10 +50,23 @@ public class Util {
         }
     }
 
+    /**
+     * default implementation of HasNextChecker
+     * @param dataStream to be checked on
+     * @return default HasNextChecker
+     * @param <T> node type
+     */
     public static <T> HasNextChecker checker(DataStream<T> dataStream) {
         return dataStream::hasNext;
     }
 
+    /**
+     * default implementation of NextFetcher
+     * @param dataStream to be worked on
+     * @param convertor converts any kind of T into byte[]
+     * @return default NextFetcher
+     * @param <T> node type
+     */
     public static <T> NextFetcher fetcher(DataStream<T> dataStream,
                                           Function<T, byte[]> convertor) {
         return () -> convertor.apply(dataStream.next());
@@ -61,6 +84,14 @@ public class Util {
         }
     }
 
+    /**
+     * Converts node list into json array
+     * @param nodes list of nodes
+     * @param mapper ObjectMapper
+     * @param putStartEnd true if start array "[" and end array "]" token needs to be write on output stream else false
+     * @return byte[]
+     * @throws DataStreamException if anything goes wrong
+     */
     public static byte[] getJsonNodeBytes(List<JsonNode> nodes,
                                           ObjectMapper mapper,
                                           boolean putStartEnd) throws DataStreamException {

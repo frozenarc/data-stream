@@ -15,6 +15,7 @@ import java.io.InputStream;
 /**
  * Author: mpanchal
  * Date: 2022-12-01 06:35
+ * Class to handle json data stream
  */
 public class JsonStream implements DataStream<JsonNode> {
 
@@ -29,10 +30,25 @@ public class JsonStream implements DataStream<JsonNode> {
     private boolean nextRead = true;
     private String fieldOnTargetDepth;
 
+    /**
+     * Constructor
+     * @param inputStream to be read and get json nodes out of it
+     * @param mapper ObjectMapper
+     * @param workingDepth at which depth interested nodes are in some array
+     * @throws IOException
+     */
     public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth) throws IOException {
         this(inputStream, mapper, workingDepth, null);
     }
 
+    /**
+     * Constructor
+     * @param inputStream to be read and get json nodes out of it
+     * @param mapper ObjectMapper
+     * @param workingDepth at which depth interested nodes are in some array
+     * @param targetField if multiple parent fields exists at working depth but we are interested to only this one
+     * @throws IOException
+     */
     public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth, String targetField) throws IOException {
         this.mapper = mapper;
         this.targetField = targetField;
@@ -41,6 +57,11 @@ public class JsonStream implements DataStream<JsonNode> {
         stackManager = new StackManager(workingDepth);
     }
 
+    /**
+     * to be used to check whether next node is available or not
+     * @return true if node available to be read or false
+     * @throws DataStreamException
+     */
     public boolean hasNext() throws DataStreamException {
         try {
             if (nextRead) {
@@ -65,6 +86,10 @@ public class JsonStream implements DataStream<JsonNode> {
         }
     }
 
+    /**
+     * @return next node
+     * @throws DataStreamException
+     */
     public JsonNode next() throws DataStreamException {
         try {
             if (token != JsonToken.START_OBJECT) {

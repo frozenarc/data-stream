@@ -5,6 +5,7 @@ import java.util.Optional;
 /**
  * Author: mpanchal
  * Date: 2022-12-01 06:56
+ * Class to represent xml attribute
  */
 public class XMLAttribute {
 
