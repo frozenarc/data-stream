@@ -17,6 +17,7 @@ import java.io.InputStream;
  * Date: 2022-12-01 06:35
  * Class to handle json data stream
  */
+@SuppressWarnings("unused")
 public class JsonStream implements DataStream<JsonNode> {
 
     private final ObjectMapper mapper;
@@ -32,35 +33,42 @@ public class JsonStream implements DataStream<JsonNode> {
 
     /**
      * Constructor
-     * @param inputStream to be read and get json nodes out of it
-     * @param mapper ObjectMapper
+     *
+     * @param inputStream  to be read and get json nodes out of it
+     * @param mapper       ObjectMapper
      * @param workingDepth at which depth interested nodes are in some array
-     * @throws IOException
+     * @throws DataStreamException if any problem occurs
      */
-    public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth) throws IOException {
+    public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth) throws DataStreamException {
         this(inputStream, mapper, workingDepth, null);
     }
 
     /**
      * Constructor
-     * @param inputStream to be read and get json nodes out of it
-     * @param mapper ObjectMapper
+     *
+     * @param inputStream  to be read and get json nodes out of it
+     * @param mapper       ObjectMapper
      * @param workingDepth at which depth interested nodes are in some array
-     * @param targetField if multiple parent fields exists at working depth but we are interested to only this one
-     * @throws IOException
+     * @param targetField  if multiple parent fields exists at working depth, but we are interested to only this one
+     * @throws DataStreamException if any problem occurs
      */
-    public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth, String targetField) throws IOException {
+    public JsonStream(InputStream inputStream, ObjectMapper mapper, int workingDepth, String targetField) throws DataStreamException {
         this.mapper = mapper;
         this.targetField = targetField;
-        JsonFactory factory = new JsonFactory();
-        parser = factory.createParser(inputStream);
-        stackManager = new StackManager(workingDepth);
+        try {
+            JsonFactory factory = new JsonFactory();
+            parser = factory.createParser(inputStream);
+            stackManager = new StackManager(workingDepth);
+        } catch (IOException e) {
+            throw new DataStreamException(e);
+        }
     }
 
     /**
      * to be used to check whether next node is available or not
+     *
      * @return true if node available to be read or false
-     * @throws DataStreamException
+     * @throws DataStreamException if any problem occurs
      */
     public boolean hasNext() throws DataStreamException {
         try {
@@ -88,7 +96,7 @@ public class JsonStream implements DataStream<JsonNode> {
 
     /**
      * @return next node
-     * @throws DataStreamException
+     * @throws DataStreamException if any problem occurs
      */
     public JsonNode next() throws DataStreamException {
         try {

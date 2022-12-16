@@ -17,6 +17,7 @@ import java.util.List;
  * Date: 2022-12-01 07:05
  * Class to handle xml data stream
  */
+@SuppressWarnings("unused")
 public class XMLStream implements DataStream<XMLElement> {
 
     private final XMLStreamReader reader;
@@ -28,16 +29,21 @@ public class XMLStream implements DataStream<XMLElement> {
     private boolean nextRead = true;
     private boolean hasNextEvent = false;
 
-    public XMLStream(InputStream inputStream, List<String> xPaths) throws XMLStreamException {
+    public XMLStream(InputStream inputStream, List<String> xPaths) throws DataStreamException {
         this.manager = new StackManager();
         this.xPaths = xPaths;
-        this.reader = XMLInputFactory.newFactory().createXMLStreamReader(inputStream);
+        try {
+            this.reader = XMLInputFactory.newFactory().createXMLStreamReader(inputStream);
+        } catch (XMLStreamException e) {
+            throw new DataStreamException(e);
+        }
     }
 
     /**
      * to be used to check whether next node is available or not
+     *
      * @return true if node available to be read or false
-     * @throws DataStreamException
+     * @throws DataStreamException if any problem occurs
      */
     @Override
     public boolean hasNext() throws DataStreamException {
@@ -64,7 +70,7 @@ public class XMLStream implements DataStream<XMLElement> {
 
     /**
      * @return next node
-     * @throws DataStreamException
+     * @throws DataStreamException if any problem occurs
      */
     @Override
     public XMLElement next() throws DataStreamException {

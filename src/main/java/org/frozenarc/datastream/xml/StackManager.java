@@ -10,7 +10,6 @@ import java.util.Stack;
 class StackManager {
 
     private final Stack<String> stack;
-    //private String endedElement;
 
     public StackManager() {
         stack = new Stack<>();
@@ -18,13 +17,10 @@ class StackManager {
 
     public void manage(int event, String elementName) {
         if (event == XMLEvent.START_ELEMENT) {
-            //endedElement = null;
             stack.push(elementName);
         }
         if (event == XMLEvent.END_ELEMENT) {
-            //endedElement = null;
             if (stack.peek().equals(elementName)) {
-                //endedElement = elementName;
                 stack.pop();
             } else {
                 throw new IllegalStateException("Stack state is illegal, Current stack: " + stack + ", Current event: " + XMLEventUtil.getEventString(event) + ", Element: " + elementName);
@@ -36,6 +32,7 @@ class StackManager {
         return stack.size() - 1;
     }
 
+    @SuppressWarnings("unused")
     public boolean isStackEmpty() {
         return getDepth() == -1;
     }
@@ -45,6 +42,6 @@ class StackManager {
         for (String ele : stack) {
             path.append("/").append(ele);
         }
-        return path.toString(); // + (endedElement == null ? "" : ("/" + endedElement));
+        return path.toString();
     }
 }

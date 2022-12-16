@@ -43,6 +43,7 @@ public class XMLElement {
                               .reduce("", (attr, a) -> attr + (attr.equals("") ? "" : " ") + a);
     }
 
+    @SuppressWarnings("unused")
     public Optional<String> getPath() {
         return Optional.ofNullable(path);
     }
@@ -63,6 +64,7 @@ public class XMLElement {
         return elements;
     }
 
+    @SuppressWarnings("unused")
     public void setPath(String path) {
         this.path = path;
     }
