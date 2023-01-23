@@ -33,7 +33,32 @@ public class DataStreamUtil {
         writeAsJsonArrayTo(outputStream,
                            checker(stream),
                            fetcher(stream, convertor),
+                           true,
                            true);
+    }
+
+    /**
+     *
+     * @param streamSupplier StreamSupplier
+     * @param convertor JsonBytesConvertor to convert from D to byte[]
+     * @param outputStream OutputStream to be written on
+     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
+     * @param <D> type of node
+     * @throws DataStreamException if anything goes wrong
+     */
+    public static <D> void handleDataStream(StreamSupplier<D> streamSupplier,
+                                            JsonBytesConvertor<D> convertor,
+                                            OutputStream outputStream,
+                                            boolean putArrayStart,
+                                            boolean putArrayEnd) throws DataStreamException {
+
+        DataStream<D> stream = streamSupplier.get();
+        writeAsJsonArrayTo(outputStream,
+                           checker(stream),
+                           fetcher(stream, convertor),
+                           putArrayStart,
+                           putArrayEnd);
     }
 
     /**
@@ -42,15 +67,17 @@ public class DataStreamUtil {
      * @param outputStream     to be written json array
      * @param checker          checks whether data is available or not
      * @param fetcher          fetches next available data
-     * @param putArrayStartEnd true if start array "[" and end array "]" token needs to be written on output stream else false
+     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
      * @throws DataStreamException if anything goes wrong
      */
     public static void writeAsJsonArrayTo(OutputStream outputStream,
                                           HasNextChecker checker,
                                           NextFetcher fetcher,
-                                          boolean putArrayStartEnd) throws DataStreamException {
+                                          boolean putArrayStart,
+                                          boolean putArrayEnd) throws DataStreamException {
         try {
-            if (putArrayStartEnd) {
+            if (putArrayStart) {
                 outputStream.write("[".getBytes());
             }
             boolean exceptFirst = false;
@@ -61,7 +88,7 @@ public class DataStreamUtil {
                 exceptFirst = true;
                 outputStream.write(fetcher.next());
             }
-            if (putArrayStartEnd) {
+            if (putArrayEnd) {
                 outputStream.write("]".getBytes());
             }
         } catch (IOException ex) {
@@ -110,13 +137,15 @@ public class DataStreamUtil {
      *
      * @param nodes       list of nodes
      * @param mapper      ObjectMapper
-     * @param putStartEnd true if start array "[" and end array "]" token needs to be written on output stream else false
+     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
      * @return byte[] converting list of node
      * @throws DataStreamException if anything goes wrong
      */
     public static byte[] getJsonNodeBytes(List<JsonNode> nodes,
                                           ObjectMapper mapper,
-                                          boolean putStartEnd) throws DataStreamException {
+                                          boolean putArrayStart,
+                                          boolean putArrayEnd) throws DataStreamException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         IndexHolder holder = new IndexHolder();
         writeAsJsonArrayTo(outputStream,
@@ -131,7 +160,8 @@ public class DataStreamUtil {
                                    holder.setIdx(holder.getIdx() + 1);
                                }
                            },
-                           putStartEnd);
+                           putArrayStart,
+                           putArrayEnd);
         return outputStream.toByteArray();
     }
 }
