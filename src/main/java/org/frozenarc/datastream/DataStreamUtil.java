@@ -18,85 +18,6 @@ import java.util.List;
 public class DataStreamUtil {
 
     /**
-     *
-     * @param streamSupplier StreamSupplier
-     * @param convertor JsonBytesConvertor to convert from D to byte[]
-     * @param outputStream OutputStream to be written on
-     * @param <D> type of node
-     * @throws DataStreamException if anything goes wrong
-     */
-    public static <D> void handleDataStream(StreamSupplier<D> streamSupplier,
-                                            JsonBytesConvertor<D> convertor,
-                                            OutputStream outputStream) throws DataStreamException {
-
-        DataStream<D> stream = streamSupplier.get();
-        writeAsJsonArrayTo(outputStream,
-                           checker(stream),
-                           fetcher(stream, convertor),
-                           true,
-                           true);
-    }
-
-    /**
-     *
-     * @param streamSupplier StreamSupplier
-     * @param convertor JsonBytesConvertor to convert from D to byte[]
-     * @param outputStream OutputStream to be written on
-     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
-     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
-     * @param <D> type of node
-     * @throws DataStreamException if anything goes wrong
-     */
-    public static <D> void handleDataStream(StreamSupplier<D> streamSupplier,
-                                            JsonBytesConvertor<D> convertor,
-                                            OutputStream outputStream,
-                                            boolean putArrayStart,
-                                            boolean putArrayEnd) throws DataStreamException {
-
-        DataStream<D> stream = streamSupplier.get();
-        writeAsJsonArrayTo(outputStream,
-                           checker(stream),
-                           fetcher(stream, convertor),
-                           putArrayStart,
-                           putArrayEnd);
-    }
-
-    /**
-     * The method facilitates reading form data stream and write the to output stream as json array
-     *
-     * @param outputStream     to be written json array
-     * @param checker          checks whether data is available or not
-     * @param fetcher          fetches next available data
-     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
-     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
-     * @throws DataStreamException if anything goes wrong
-     */
-    public static void writeAsJsonArrayTo(OutputStream outputStream,
-                                          HasNextChecker checker,
-                                          NextFetcher fetcher,
-                                          boolean putArrayStart,
-                                          boolean putArrayEnd) throws DataStreamException {
-        try {
-            if (putArrayStart) {
-                outputStream.write("[".getBytes());
-            }
-            boolean exceptFirst = false;
-            while (checker.hasNext()) {
-                if (exceptFirst) {
-                    outputStream.write(",".getBytes());
-                }
-                exceptFirst = true;
-                outputStream.write(fetcher.next());
-            }
-            if (putArrayEnd) {
-                outputStream.write("]".getBytes());
-            }
-        } catch (IOException ex) {
-            throw new DataStreamException(ex);
-        }
-    }
-
-    /**
      * default implementation of HasNextChecker
      *
      * @param dataStream to be checked on
@@ -120,48 +41,118 @@ public class DataStreamUtil {
         return () -> convertor.convert(dataStream.next());
     }
 
-    static class IndexHolder {
-        int idx = 0;
-
-        public int getIdx() {
-            return idx;
-        }
-
-        public void setIdx(int idx) {
-            this.idx = idx;
-        }
+    public static NextValidator validator() {
+        return data -> data != null && data.length > 0;
     }
 
     /**
      * Converts node list into json array
      *
-     * @param nodes       list of nodes
-     * @param mapper      ObjectMapper
-     * @param putArrayStart true if start array "[" token needs to be written on output stream else false
-     * @param putArrayEnd true if end array "]" token needs to be written on output stream else false
+     * @param nodes              list of nodes
+     * @param mapper             ObjectMapper
+     * @param putArrayStart      true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd        true if end array "]" token needs to be written on output stream else false
+     * @param noCommaBeforeBatch true if first batch is being written on stream or there is only one batch to be written
      * @return byte[] converting list of node
      * @throws DataStreamException if anything goes wrong
      */
     public static byte[] getJsonNodeBytes(List<JsonNode> nodes,
                                           ObjectMapper mapper,
                                           boolean putArrayStart,
-                                          boolean putArrayEnd) throws DataStreamException {
+                                          boolean putArrayEnd,
+                                          boolean noCommaBeforeBatch) throws DataStreamException {
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        IndexHolder holder = new IndexHolder();
-        writeAsJsonArrayTo(outputStream,
-                           () -> nodes.size() > holder.getIdx(),
-                           () -> {
-                               try {
-                                   JsonNode node = nodes.get(holder.getIdx());
-                                   return mapper.writeValueAsBytes(node);
-                               } catch (JsonProcessingException e) {
-                                   throw new DataStreamException(e);
-                               } finally {
-                                   holder.setIdx(holder.getIdx() + 1);
-                               }
-                           },
-                           putArrayStart,
-                           putArrayEnd);
+
+        IndexedIterator.instanceSupplier((instance) -> writeAsJsonArrayTo(outputStream,
+                                                                          putArrayStart,
+                                                                          putArrayEnd,
+                                                                          noCommaBeforeBatch)
+                .iterateThrough(instance.checker(idx -> idx < nodes.size()),
+                                instance.fetcher(idx -> {
+                                    try {
+                                        JsonNode node = nodes.get(idx);
+                                        return mapper.writeValueAsBytes(node);
+                                    } catch (JsonProcessingException e) {
+                                        throw new DataStreamException(e);
+                                    }
+                                }),
+                                validator()));
+
         return outputStream.toByteArray();
     }
+
+    /**
+     * Writes json array to output stream
+     *
+     * @param outputStream       OutputStream to be written on
+     * @param putArrayStart      true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd        true if end array "]" token needs to be written on output stream else false
+     * @param noCommaBeforeBatch true if first batch is being written on stream or there is only one batch to be written
+     * @return IterateThough     this is iterator which accepts checker, fetcher and validator for each record
+     */
+    public static IterateThrough writeAsJsonArrayTo(OutputStream outputStream,
+                                                    boolean putArrayStart,
+                                                    boolean putArrayEnd,
+                                                    boolean noCommaBeforeBatch) {
+        return (checker, fetcher, validator) -> {
+            int count = 0;
+            try {
+                if (putArrayStart) {
+                    outputStream.write("[".getBytes());
+                }
+                int flushCount = 1;
+                boolean putCommaBeforeNode = !noCommaBeforeBatch;
+                while (checker.hasNext()) {
+                    byte[] data = fetcher.next();
+                    if (validator.validate(data)) {
+                        if (putCommaBeforeNode) {
+                            outputStream.write(",".getBytes());
+                        }
+                        putCommaBeforeNode = true;
+                        outputStream.write(data);
+                        if(flushCount > 10) {
+                            outputStream.flush();
+                            flushCount = 0;
+                        }
+                        flushCount++;
+                        count++;
+                    }
+                }
+                if (putArrayEnd) {
+                    outputStream.write("]".getBytes());
+                }
+            } catch (IOException ex) {
+                throw new DataStreamException(ex);
+            }
+            return count;
+        };
+    }
+
+    /**
+     * Handle data stream suppied and writes it on output stream
+     *
+     * @param outputStream       OutputStream to be written on
+     * @param streamSupplier     StreamSupplier who supplies stream to be read
+     * @param putArrayStart      true if start array "[" token needs to be written on output stream else false
+     * @param putArrayEnd        true if end array "]" token needs to be written on output stream else false
+     * @param noCommaBeforeBatch true if first batch is being written on stream or there is only one batch to be written
+     * @return IterateFor        this is iterator which accepts convertor and validator for each record
+     */
+    public static <D> IterateFor<D> handleDataStream(OutputStream outputStream,
+                                                     StreamSupplier<D> streamSupplier,
+                                                     boolean putArrayStart,
+                                                     boolean putArrayEnd,
+                                                     boolean noCommaBeforeBatch) throws DataStreamException {
+
+        DataStream<D> stream = streamSupplier.get();
+
+        IterateThrough iterateThrough = writeAsJsonArrayTo(outputStream,
+                                                           putArrayStart,
+                                                           putArrayEnd,
+                                                           noCommaBeforeBatch);
+
+        return (convertor, validator) -> iterateThrough.iterateThrough(checker(stream), fetcher(stream, convertor), validator);
+    }
+
 }

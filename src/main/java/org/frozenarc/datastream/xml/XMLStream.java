@@ -92,6 +92,13 @@ public class XMLStream implements DataStream<XMLElement> {
                             attribute.setValue(reader.getAttributeValue(i));
                             element.addAttribute(attribute);
                         }
+                        if(xPaths.stream()
+                                 .anyMatch(xPath -> xPath.endsWith("/@")
+                                                    && xPath.substring(0, xPath.indexOf("/@"))
+                                                            .equals(manager.getCurrentPath()))) {
+                            nextEvent();
+                            return element;
+                        }
                     } else {
                         element.addElement(next());
                     }
