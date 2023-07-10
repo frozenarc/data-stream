@@ -111,7 +111,7 @@ public class DataStreamUtil {
                         }
                         putCommaBeforeNode = true;
                         outputStream.write(data);
-                        if(flushCount > 10) {
+                        if(flushCount > 100) {
                             outputStream.flush();
                             flushCount = 0;
                         }
@@ -122,6 +122,7 @@ public class DataStreamUtil {
                 if (putArrayEnd) {
                     outputStream.write("]".getBytes());
                 }
+                outputStream.flush();
             } catch (IOException ex) {
                 throw new DataStreamException(ex);
             }
