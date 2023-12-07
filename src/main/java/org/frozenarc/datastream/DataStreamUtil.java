@@ -3,6 +3,10 @@ package org.frozenarc.datastream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.frozenarc.datastream.convertors.DataConvertor;
+import org.frozenarc.datastream.iterators.DataIterator;
+import org.frozenarc.datastream.iterators.HasNextChecker;
+import org.frozenarc.datastream.iterators.NextFetcher;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +41,7 @@ public class DataStreamUtil {
      * @return default NextFetcher
      */
     public static <T> NextFetcher fetcher(DataStream<T> dataStream,
-                                          JsonBytesConvertor<T> convertor) {
+                                          DataConvertor<T> convertor) {
         return () -> convertor.convert(dataStream.next());
     }
 
@@ -82,15 +86,6 @@ public class DataStreamUtil {
         return outputStream.toByteArray();
     }
 
-    /**
-     * Writes json array to output stream
-     *
-     * @param outputStream       OutputStream to be written on
-     * @param putArrayStart      true if start array "[" token needs to be written on output stream else false
-     * @param putArrayEnd        true if end array "]" token needs to be written on output stream else false
-     * @param noCommaBeforeBatch true if first batch is being written on stream or there is only one batch to be written
-     * @return IterateThough     this is iterator which accepts checker, fetcher and validator for each record
-     */
     public static IterateThrough writeAsJsonArrayTo(OutputStream outputStream,
                                                     boolean putArrayStart,
                                                     boolean putArrayEnd,
@@ -111,7 +106,7 @@ public class DataStreamUtil {
                         }
                         putCommaBeforeNode = true;
                         outputStream.write(data);
-                        if(flushCount > 100) {
+                        if (flushCount > 100) {
                             outputStream.flush();
                             flushCount = 0;
                         }
@@ -130,16 +125,6 @@ public class DataStreamUtil {
         };
     }
 
-    /**
-     * Handle data stream suppied and writes it on output stream
-     *
-     * @param outputStream       OutputStream to be written on
-     * @param streamSupplier     StreamSupplier who supplies stream to be read
-     * @param putArrayStart      true if start array "[" token needs to be written on output stream else false
-     * @param putArrayEnd        true if end array "]" token needs to be written on output stream else false
-     * @param noCommaBeforeBatch true if first batch is being written on stream or there is only one batch to be written
-     * @return IterateFor        this is iterator which accepts convertor and validator for each record
-     */
     public static <D> IterateFor<D> handleDataStream(OutputStream outputStream,
                                                      StreamSupplier<D> streamSupplier,
                                                      boolean putArrayStart,
@@ -154,6 +139,17 @@ public class DataStreamUtil {
                                                            noCommaBeforeBatch);
 
         return (convertor, validator) -> iterateThrough.iterateThrough(checker(stream), fetcher(stream, convertor), validator);
+    }
+
+    public static <D> DataIterator<D> handle(DataStream<D> stream) {
+        return (consumer) -> {
+            consumer.startConsuming();
+            while (stream.hasNext()) {
+                D data = stream.next();
+                consumer.consume(data);
+            }
+            consumer.endConsuming();
+        };
     }
 
 }

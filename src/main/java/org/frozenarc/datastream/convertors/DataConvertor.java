@@ -1,4 +1,6 @@
-package org.frozenarc.datastream;
+package org.frozenarc.datastream.convertors;
+
+import org.frozenarc.datastream.DataStreamException;
 
 /**
  * Author: mpanchal
@@ -7,7 +9,7 @@ package org.frozenarc.datastream;
  *
  * @param <D>
  */
-public interface JsonBytesConvertor<D> {
+public interface DataConvertor<D> {
 
     byte[] convert(D node) throws DataStreamException;
 }

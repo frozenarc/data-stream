@@ -1,4 +1,6 @@
-package org.frozenarc.datastream;
+package org.frozenarc.datastream.iterators;
+
+import org.frozenarc.datastream.DataStreamException;
 
 /**
  * Author: mpanchal

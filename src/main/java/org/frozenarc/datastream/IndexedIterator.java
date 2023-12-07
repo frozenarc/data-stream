@@ -1,5 +1,8 @@
 package org.frozenarc.datastream;
 
+import org.frozenarc.datastream.iterators.HasNextChecker;
+import org.frozenarc.datastream.iterators.NextFetcher;
+
 /*
  * Author: mpanchal
  * Date: 15-02-2023
