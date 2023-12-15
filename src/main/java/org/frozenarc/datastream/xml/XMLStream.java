@@ -2,6 +2,8 @@ package org.frozenarc.datastream.xml;
 
 import org.frozenarc.datastream.DataStream;
 import org.frozenarc.datastream.DataStreamException;
+import org.frozenarc.datastream.util.StreamFetcher;
+import org.frozenarc.datastream.util.Streamable;
 import org.frozenarc.datastream.xml.model.XMLAttribute;
 import org.frozenarc.datastream.xml.model.XMLElement;
 
@@ -18,7 +20,7 @@ import java.util.List;
  * Class to handle xml data stream
  */
 @SuppressWarnings("unused")
-public class XMLStream implements DataStream<XMLElement> {
+public class XMLStream implements DataStream<XMLElement>, Streamable<XMLElement> {
 
     private final XMLStreamReader reader;
     private final List<String> xPaths;
@@ -114,6 +116,11 @@ public class XMLStream implements DataStream<XMLElement> {
         } catch (XMLStreamException ex) {
             throw new DataStreamException(ex);
         }
+    }
+
+    @Override
+    public StreamFetcher<XMLElement, XMLElement> streamFetcher() {
+        return new StreamFetcher<>(this);
     }
 
     private void nextEvent() throws XMLStreamException {

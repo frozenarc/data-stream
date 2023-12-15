@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.frozenarc.datastream.DataStream;
 import org.frozenarc.datastream.DataStreamException;
+import org.frozenarc.datastream.util.StreamFetcher;
+import org.frozenarc.datastream.util.Streamable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +20,7 @@ import java.io.InputStream;
  * Class to handle json data stream
  */
 @SuppressWarnings("unused")
-public class JsonStream implements DataStream<JsonNode> {
+public class JsonStream implements DataStream<JsonNode>, Streamable<JsonNode> {
 
     private final ObjectMapper mapper;
     private final String targetField;
@@ -124,6 +126,10 @@ public class JsonStream implements DataStream<JsonNode> {
         } catch (IOException ex) {
             throw new DataStreamException(ex);
         }
+    }
+
+    public StreamFetcher<JsonNode, JsonNode> streamFetcher() {
+        return new StreamFetcher<>(this);
     }
 
     private JsonToken pickNextToken() throws IOException {
