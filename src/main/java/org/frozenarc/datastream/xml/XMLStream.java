@@ -118,6 +118,10 @@ public class XMLStream implements DataStream<XMLElement>, Streamable<XMLElement>
         }
     }
 
+    /**
+     * Returns StreamFetcher as wrapper of the stream
+     * @return StreamFetcher
+     */
     @Override
     public StreamFetcher<XMLElement, XMLElement> streamFetcher() {
         return new StreamFetcher<>(this);

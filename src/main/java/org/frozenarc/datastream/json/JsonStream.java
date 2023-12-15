@@ -128,6 +128,10 @@ public class JsonStream implements DataStream<JsonNode>, Streamable<JsonNode> {
         }
     }
 
+    /**
+     * Returns StreamFetcher as wrapper of the stream
+     * @return StreamFetcher
+     */
     public StreamFetcher<JsonNode, JsonNode> streamFetcher() {
         return new StreamFetcher<>(this);
     }
