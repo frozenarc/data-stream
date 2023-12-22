@@ -138,14 +138,28 @@ public class JsonStream implements DataStream<JsonNode>, Streamable<JsonNode> {
 
     private JsonToken pickNextToken() throws IOException {
         JsonToken token = parser.nextToken();
+        if(token == null) {
+            token = JsonToken.NOT_AVAILABLE;
+        }
         stackManager.manage(token);
         return token;
     }
 
-    private boolean shouldParsingStart() {
+    private boolean shouldParsingStart() throws DataStreamException {
+        if(token == JsonToken.NOT_AVAILABLE) {
+            throw new DataStreamException("InputStream is closed");
+        }
         return token == JsonToken.START_OBJECT
                && stackManager.isOnWorkingDepth()
                && (targetField == null || _isFieldFound());
+    }
+
+    private boolean shouldParsingEnd() throws DataStreamException {
+        if(token == JsonToken.NOT_AVAILABLE) {
+            throw new DataStreamException("InputStream is closed");
+        }
+        return (token == JsonToken.END_ARRAY || token == JsonToken.END_OBJECT)
+               && stackManager.isStackEmpty();
     }
 
     private boolean _isFieldFound() {
@@ -153,11 +167,6 @@ public class JsonStream implements DataStream<JsonNode>, Streamable<JsonNode> {
             throw new IllegalStateException("Target field seems deeper than defined depth");
         }
         return fieldOnTargetDepth.equals(targetField);
-    }
-
-    private boolean shouldParsingEnd() {
-        return (token == JsonToken.END_ARRAY || token == JsonToken.END_OBJECT)
-               && stackManager.isStackEmpty();
     }
 
     private void setValueFor(String key, ObjectNode node) throws IOException {

@@ -106,7 +106,7 @@ public class XMLStream implements DataStream<XMLElement>, Streamable<XMLElement>
                     }
                 }
                 if (event == XMLEvent.CHARACTERS) {
-                    if (reader.getText().trim().length() > 0) {
+                    if (!reader.getText().trim().isEmpty()) {
                         element.setValue(reader.getText());
                     }
                 }
