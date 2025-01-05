@@ -1,4 +1,4 @@
-package org.frozenarc.datastream.util;
+package org.frozenarc.datastream.ext;
 
 import org.frozenarc.datastream.DataStreamException;
 

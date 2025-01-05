@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.frozenarc.datastream.json.JsonStream;
-import org.frozenarc.datastream.util.StackReader;
-import org.frozenarc.datastream.util.StreamFetcher;
+import org.frozenarc.datastream.ext.StreamFetcher;
 import org.junit.Test;
-
-import java.util.Stack;
 
 /**
  * Author: mpanchal

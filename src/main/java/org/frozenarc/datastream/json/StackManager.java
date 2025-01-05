@@ -60,4 +60,8 @@ class StackManager {
     public int getWorkingDepth() {
         return workingDepth;
     }
+
+    public boolean isOnORInWorkingDepthObject() {
+        return getDepth() - getWorkingDepth() <= 1;
+    }
 }

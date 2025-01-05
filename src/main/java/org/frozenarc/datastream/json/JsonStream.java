@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.frozenarc.datastream.DataStream;
 import org.frozenarc.datastream.DataStreamException;
-import org.frozenarc.datastream.util.StreamFetcher;
-import org.frozenarc.datastream.util.Streamable;
+import org.frozenarc.datastream.ext.StreamFetcher;
+import org.frozenarc.datastream.ext.Streamable;
 
 import java.io.IOException;
 import java.io.InputStream;

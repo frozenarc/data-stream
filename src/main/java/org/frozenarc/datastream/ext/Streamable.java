@@ -1,4 +1,4 @@
-package org.frozenarc.datastream.util;
+package org.frozenarc.datastream.ext;
 
 /**
  * Implement the interface to delegate stream fetching functionality to StreamFetcher

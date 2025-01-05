@@ -76,7 +76,7 @@ public class OutputStreamWriter<D> implements DataConsumer<D> {
                 firstNode = false;
                 outputStream.write(convertor.convert(data));
                 recordCount = recordCount + 1;
-                if (flushLimit == recordCount) {
+                if(flushLimit == recordCount) {
                     outputStream.flush();
                 }
             }

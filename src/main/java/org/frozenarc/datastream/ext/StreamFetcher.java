@@ -1,4 +1,4 @@
-package org.frozenarc.datastream.util;
+package org.frozenarc.datastream.ext;
 
 import org.frozenarc.datastream.DataStream;
 import org.frozenarc.datastream.DataStreamException;
@@ -11,7 +11,6 @@ import java.util.function.Function;
 /**
  * Author: mpanchal
  * Date: 2023-12-14 23:14
- *
  * provides support of map, forEach, collect
  */
 public class StreamFetcher<T, U> implements DataStream<U>, Stackable<U> {

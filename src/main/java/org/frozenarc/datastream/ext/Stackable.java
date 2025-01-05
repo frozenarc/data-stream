@@ -1,4 +1,4 @@
-package org.frozenarc.datastream.util;
+package org.frozenarc.datastream.ext;
 
 /**
  * Implement the interface to delegate stack reading functionality to StackReader
